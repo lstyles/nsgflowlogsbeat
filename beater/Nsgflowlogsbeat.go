@@ -3,6 +3,7 @@ package beater
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -91,7 +92,7 @@ func (bt *nsgflowlogsbeat) Run(b *beat.Beat) error {
 		index := bt.checkpointsTable.GetCheckpoint(blob.PartitionKey, blob.RowKey)
 		data := bt.storageReader.ReadBlobData(blob.Name, index)
 
-		var messages []string
+		var messages []nsgflowlogs.NsgMessage
 
 		if index == 0 {
 			// Starting from beginning of file
@@ -106,18 +107,45 @@ func (bt *nsgflowlogsbeat) Run(b *beat.Beat) error {
 		logp.Info("Got: %v messages", len(messages))
 
 		for _, message := range messages {
-			logp.Info(message)
-			event := beat.Event{
-				Timestamp: time.Now(),
-				Fields: common.MapStr{
-					"type":    b.Info.Name,
-					"message": message,
-				},
+			for _, outerFlow := range message.Properties.Flows {
+				for _, innerFlow := range outerFlow.Flows {
+					for _, flowTuple := range innerFlow.FlowTuples {
+						tuple := strings.Split(flowTuple, ",")
+						event := beat.Event{
+							Timestamp: message.Time,
+							Fields: common.MapStr{
+								"type":               b.Info.Name,
+								"systemId":           message.SystemId,
+								"macAddress":         message.MacAddress,
+								"category":           message.Category,
+								"resourceId":         message.ResourceId,
+								"operationName":      message.OperationName,
+								"version":            message.Properties.Version,
+								"nsgRuleName":        outerFlow.Rule,
+								"startTime":          tuple[0],
+								"sourceAddress":      tuple[1],
+								"destinationAddress": tuple[2],
+								"sourcePort":         tuple[3],
+								"destinationPort":    tuple[4],
+								"transportProtocol":  tuple[5],
+								"deviceDirection":    tuple[6],
+								"deviceAction":       tuple[7],
+								"flowState":          tuple[8],
+								"packetsStoD":        tuple[9],
+								"bytesStoD":          tuple[10],
+								"packetsDtoS":        tuple[11],
+								"bytesDtoS":          tuple[12],
+							},
+						}
+
+						bt.client.Publish(event)
+					}
+				}
 			}
-			bt.client.Publish(event)
-			logp.Info("Event sent")
 		}
 
+		logp.Info("%+v", blob.ETag)
+		bt.checkpointsTable.SetCheckpoint(blob.PartitionKey, blob.RowKey, string(blob.ETag), int64(index+len(data)-1))
 	}
 
 	bt.checkpointsTable.SetLastScanTS(endTime)
