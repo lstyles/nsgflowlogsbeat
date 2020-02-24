@@ -2,8 +2,8 @@
   title: nsgflowlogsbeat
   description:
   fields:
-    - name: counter
-      type: long
+    - name: message
+      type: string
       required: true
       description: >
         PLEASE UPDATE DOCUMENTATION

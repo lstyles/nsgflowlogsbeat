@@ -3,5 +3,16 @@
 ############################# {Beat} ######################################
 
 nsgflowlogsbeat:
-  # Defines how often an event is sent to the output
-  period: 1s
+  # Defines how often storage account is scanned for changes
+  scan_frequency: 30s
+  # Storage account name where NSG logs are stored
+  storage_account_name: ''
+  # Storage account key
+  storage_account_key: ''
+  # Name of the storage account container
+  container_name: ''
+  # Checkpoints table name
+  checkpoints_table_name: ''
+  checkpoints_table_timeout: 15
+  # Ignores NSG logs older than specified time offset
+  ignore_older: 0
