@@ -5,3 +5,4 @@
 /nsgflowlogsbeat
 /nsgflowlogsbeat.test
 *.pyc
+logs/

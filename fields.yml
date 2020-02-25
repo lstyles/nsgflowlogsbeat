@@ -4391,8 +4391,88 @@
   title: nsgflowlogsbeat
   description:
   fields:
-    - name: counter
-      type: long
+    - name: systemId
+      type: keyword
       required: true
       description: >
         PLEASE UPDATE DOCUMENTATION
+    - name: macAddress
+      type: keyword
+      required: true
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: category
+      type: keyword
+      required: true
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: resourceId
+      type: keyword
+      required: true
+      description: >
+        PLEASE UPDATE DOCUMENTATION        
+    - name: operationName
+      type: keyword
+      required: true
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: version
+      type: long
+      description: >
+        Version of NSG Flow logs
+    - name: nsgRuleName
+      type: keyword
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: startTime
+      type: long
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: sourceAddress
+      type: keyword
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: destinationAddress
+      type: keyword
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: sourcePort
+      type: long
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: destinationPort
+      type: long
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: transportProtocol
+      type: keyword
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: deviceDirection
+      type: keyword
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: deviceAction
+      type: keyword
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: flowState
+      type: keyword
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: packetsStoD
+      type: long
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: bytesStoD
+      type: long
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: packetsDtoS
+      type: long
+      description: >
+        PLEASE UPDATE DOCUMENTATION
+    - name: bytesDtoS
+      type: long
+      description: >
+        PLEASE UPDATE DOCUMENTATION        

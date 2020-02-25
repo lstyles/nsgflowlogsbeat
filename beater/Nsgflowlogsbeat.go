@@ -1,9 +1,7 @@
 package beater
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/elastic/beats/libbeat/beat"
@@ -16,11 +14,10 @@ import (
 
 // nsgflowlogsbeat configuration.
 type nsgflowlogsbeat struct {
-	done             chan struct{}
-	config           config.Config
-	client           beat.Client
-	checkpointsTable *nsgflowlogs.CheckpointsTable
-	storageReader    *nsgflowlogs.StorageReader
+	done         chan struct{}
+	config       config.Config
+	client       beat.Client
+	LogHarvester *nsgflowlogs.LogHarvester
 }
 
 // New creates an instance of nsgflowlogsbeat.
@@ -30,8 +27,8 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
 	}
 
-	if c.ScanFrequency.Seconds() < 10 {
-		logp.Warn("Chosen interval of %s is not valid. Changing to default 10s", c.ScanFrequency.String())
+	if c.ScanFrequency.Seconds() < 30 {
+		logp.Warn("Chosen interval of %s is not valid. Changing to default 30s", c.ScanFrequency.String())
 		c.ScanFrequency = 1 * time.Minute
 	}
 
@@ -41,11 +38,15 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 
 	logp.Info("Storage account name %s is %d characters long", c.StorageAccountName, len(c.StorageAccountName))
 
+	lh, lherr := nsgflowlogs.NewLogHarvester(&c, make(chan *nsgflowlogs.ReaderQueueItem), make(chan string))
+	if lherr != nil {
+		panic(lherr)
+	}
+
 	bt := &nsgflowlogsbeat{
-		done:             make(chan struct{}),
-		config:           c,
-		checkpointsTable: nsgflowlogs.NewCheckpointsTable(c.StorageAccountName, c.StorageAccountKey, c.CheckpointsTableName, c.CheckpointsTableTimeout),
-		storageReader:    nsgflowlogs.NewStorageReader(c.StorageAccountName, c.StorageAccountKey, c.ContainerName),
+		done:         make(chan struct{}),
+		config:       c,
+		LogHarvester: lh,
 	}
 	return bt, nil
 }
@@ -54,101 +55,10 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 func (bt *nsgflowlogsbeat) Run(b *beat.Beat) error {
 	logp.Info("nsgflowlogsbeat is running! Hit CTRL-C to stop it.")
 
-	var err error
-	bt.client, err = b.Publisher.Connect()
+	_, err := b.Publisher.Connect()
 	if err != nil {
 		return err
 	}
-
-	// Catch up first, before getting into scan frequency
-	timeNow := int64(time.Now().UTC().Unix())
-	ignoreOlder := int64(bt.config.IgnoreOlder.Seconds())
-	lastScanTS := bt.checkpointsTable.GetLastScanTS()
-
-	logp.Info("Got: timeNow: %v, ignoreOlder: %v, lastScanTS: %v", timeNow, ignoreOlder, lastScanTS)
-
-	// Earliest possible start taking ignore_older config setting into account
-	minStart := timeNow - ignoreOlder
-
-	startTime := int64(0)
-	if lastScanTS == 0 || lastScanTS < minStart {
-		startTime = minStart
-	} else {
-		startTime = lastScanTS
-	}
-
-	endTime := timeNow
-
-	logp.Info("Scanning blobs modified between %v and %v", startTime, endTime)
-
-	blobsToProcess := bt.storageReader.ListBlobsModifiedBetween(startTime, endTime)
-	blobsCount := len(blobsToProcess)
-	logp.Info("Found %v blobs", blobsCount)
-
-	for i, blob := range blobsToProcess {
-		i++
-		logp.Info("Processing %d/%d - %s - %s", i, blobsCount, blob.PartitionKey, blob.RowKey)
-
-		index := bt.checkpointsTable.GetCheckpoint(blob.PartitionKey, blob.RowKey)
-		data := bt.storageReader.ReadBlobData(blob.Name, index)
-
-		var messages []nsgflowlogs.NsgMessage
-
-		if index == 0 {
-			// Starting from beginning of file
-			data = data[11 : len(data)-1]
-		} else {
-			// Starting from saved position
-			data = data[1 : len(data)-1]
-		}
-
-		json.Unmarshal([]byte(data), &messages)
-
-		logp.Info("Got: %v messages", len(messages))
-
-		for _, message := range messages {
-			for _, outerFlow := range message.Properties.Flows {
-				for _, innerFlow := range outerFlow.Flows {
-					for _, flowTuple := range innerFlow.FlowTuples {
-						tuple := strings.Split(flowTuple, ",")
-						event := beat.Event{
-							Timestamp: message.Time,
-							Fields: common.MapStr{
-								"type":               b.Info.Name,
-								"systemId":           message.SystemId,
-								"macAddress":         message.MacAddress,
-								"category":           message.Category,
-								"resourceId":         message.ResourceId,
-								"operationName":      message.OperationName,
-								"version":            message.Properties.Version,
-								"nsgRuleName":        outerFlow.Rule,
-								"startTime":          tuple[0],
-								"sourceAddress":      tuple[1],
-								"destinationAddress": tuple[2],
-								"sourcePort":         tuple[3],
-								"destinationPort":    tuple[4],
-								"transportProtocol":  tuple[5],
-								"deviceDirection":    tuple[6],
-								"deviceAction":       tuple[7],
-								"flowState":          tuple[8],
-								"packetsStoD":        tuple[9],
-								"bytesStoD":          tuple[10],
-								"packetsDtoS":        tuple[11],
-								"bytesDtoS":          tuple[12],
-							},
-						}
-
-						bt.client.Publish(event)
-					}
-				}
-			}
-		}
-
-		logp.Info("%+v", blob.ETag)
-		bt.checkpointsTable.SetCheckpoint(blob.PartitionKey, blob.RowKey, string(blob.ETag), int64(index+len(data)-1))
-	}
-
-	bt.checkpointsTable.SetLastScanTS(endTime)
 
 	ticker := time.NewTicker(bt.config.ScanFrequency)
 	for {
@@ -157,16 +67,14 @@ func (bt *nsgflowlogsbeat) Run(b *beat.Beat) error {
 			return nil
 		case <-ticker.C:
 		}
+		// Start Message Processor workers
 
-		event := beat.Event{
-			Timestamp: time.Now(),
-			Fields: common.MapStr{
-				"type":    b.Info.Name,
-				"message": "",
-			},
-		}
-		bt.client.Publish(event)
-		logp.Info("Event sent")
+		// Start Storage Reader workers
+
+		// Scan for changes
+		bt.LogHarvester.ScanForChanges()
+
+		// Wait for workers
 	}
 }
 

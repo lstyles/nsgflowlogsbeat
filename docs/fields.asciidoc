@@ -6295,7 +6295,87 @@ type: keyword
 None
 
 
-*`counter`*::
+*`systemId`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+required: True
+
+--
+
+*`macAddress`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+required: True
+
+--
+
+*`category`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+required: True
+
+--
+
+*`resourceId`*::
++
+--
+PLEASE UPDATE DOCUMENTATION        
+
+
+type: keyword
+
+required: True
+
+--
+
+*`operationName`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+required: True
+
+--
+
+*`version`*::
++
+--
+Version of NSG Flow logs
+
+
+type: long
+
+--
+
+*`nsgRuleName`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+--
+
+*`startTime`*::
 +
 --
 PLEASE UPDATE DOCUMENTATION
@@ -6303,7 +6383,125 @@ PLEASE UPDATE DOCUMENTATION
 
 type: long
 
-required: True
+--
+
+*`sourceAddress`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+--
+
+*`destinationAddress`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+--
+
+*`sourcePort`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: long
+
+--
+
+*`destinationPort`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: long
+
+--
+
+*`transportProtocol`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+--
+
+*`deviceDirection`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+--
+
+*`deviceAction`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+--
+
+*`flowState`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: keyword
+
+--
+
+*`packetsStoD`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: long
+
+--
+
+*`bytesStoD`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: long
+
+--
+
+*`packetsDtoS`*::
++
+--
+PLEASE UPDATE DOCUMENTATION
+
+
+type: long
+
+--
+
+*`bytesDtoS`*::
++
+--
+PLEASE UPDATE DOCUMENTATION        
+
+
+type: long
 
 --
 
