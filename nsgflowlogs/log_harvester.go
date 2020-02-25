@@ -10,19 +10,18 @@ import (
 // LogHarvester - responsible for retrieving blobs and managing state
 type LogHarvester struct {
 	config           *config.Config
-	checkpointsTable *CheckpointsTable
-	storageReader    *StorageReader
-	ReaderQueue      chan *ReaderQueueItem
+	CheckpointsTable *CheckpointsTable
+	ReaderQueue      chan ReaderQueueItem
 	ProcessorQueue   chan string
 }
 
 type ReaderQueueItem struct {
-	BlobDetails *BlobDetails
-	Checkpoint  *Checkpoint
+	BlobDetails BlobDetails
+	Checkpoint  Checkpoint
 }
 
 // NewLogHarvester - Creates a new instance of LogHarvester
-func NewLogHarvester(config *config.Config, readerQueue chan *ReaderQueueItem, processorQueue chan string) (*LogHarvester, error) {
+func NewLogHarvester(config *config.Config) (*LogHarvester, error) {
 
 	logp.Info("Initializing Log Harvester")
 
@@ -33,51 +32,14 @@ func NewLogHarvester(config *config.Config, readerQueue chan *ReaderQueueItem, p
 
 	logp.Info("Initialized checkpoints table")
 
-	sr, serr := NewStorageReader(config.StorageAccountName, config.StorageAccountKey, config.ContainerName)
-	if serr != nil {
-		return nil, serr
-	}
-
-	logp.Info("Initialized storage reader")
-
 	lh := &LogHarvester{
 		config:           config,
-		checkpointsTable: ct,
-		storageReader:    sr,
-		ReaderQueue:      readerQueue,
-		ProcessorQueue:   processorQueue,
+		CheckpointsTable: ct,
+		ReaderQueue:      make(chan ReaderQueueItem),
+		ProcessorQueue:   make(chan string),
 	}
 
 	return lh, nil
-}
-
-func (lh *LogHarvester) HarvestLogs() {
-	for {
-		r, more := <-lh.ReaderQueue
-		if more {
-			go lh.DownloadAndPublish(r)
-		} else {
-			return
-		}
-	}
-}
-
-func (lh *LogHarvester) DownloadAndPublish(queueItem *ReaderQueueItem) {
-
-	data := lh.storageReader.ReadBlobData(queueItem.BlobDetails.Name, queueItem.Checkpoint.Index)
-
-	queueItem.Checkpoint.Index = int64(len(data) - 1)
-	lh.checkpointsTable.CreateOrUpdateCheckpoint(queueItem.Checkpoint)
-
-	if queueItem.Checkpoint.Index == 0 {
-		// Starting from beginning of file
-		data = data[11 : len(data)-1]
-	} else {
-		// Starting from saved position
-		data = data[1 : len(data)-1]
-	}
-
-	lh.ProcessorQueue <- data
 }
 
 // ScanForChanges - Scans storage account for blobs that need to be parsed
@@ -89,7 +51,7 @@ func (lh *LogHarvester) ScanForChanges() {
 	ignoreOlder := int64(lh.config.IgnoreOlder.Seconds())
 	minStart := timeNow - ignoreOlder
 
-	lc, err := lh.checkpointsTable.GetCheckpoint("System", "LastScanTS")
+	lc, err := lh.CheckpointsTable.GetCheckpoint("System", "LastScanTS")
 	if err != nil {
 		logp.Error(err)
 		return
@@ -115,31 +77,39 @@ func (lh *LogHarvester) ScanForChanges() {
 	endTime := timeNow
 
 	lc.Index = time.Now().UTC().Unix()
-	err = lh.checkpointsTable.CreateOrUpdateCheckpoint(lc)
+	err = lh.CheckpointsTable.CreateOrUpdateCheckpoint(lc)
 	if err != nil {
 		logp.Error(err)
 	}
 
-	blobsToProcess := lh.storageReader.ListBlobsModifiedBetween(startTime, endTime)
+	sr, serr := NewStorageReader(lh.config.StorageAccountName, lh.config.StorageAccountKey, lh.config.ContainerName, lh.CheckpointsTable, lh.ReaderQueue, lh.ProcessorQueue)
+	if serr != nil {
+		panic(serr)
+	}
+
+	blobsToProcess := sr.ListBlobsModifiedBetween(startTime, endTime)
 	blobsCount := len(blobsToProcess)
 	logp.Info("Found %v blobs", blobsCount)
 
 	for i, blob := range blobsToProcess {
 		i++
 
-		c, err := lh.checkpointsTable.GetCheckpoint(blob.PartitionKey, blob.RowKey)
+		c, err := lh.CheckpointsTable.GetCheckpoint(blob.PartitionKey, blob.RowKey)
 		if err != nil {
 			logp.Error(err)
 			continue
 		}
 
+		var checkPoint Checkpoint
 		if c != nil {
-			if blob.ETag == c.ETag {
+			checkPoint = *c
+			if blob.ETag == checkPoint.ETag {
 				logp.Info("Blob ETag hasn't changed. Skipping.")
 				continue
 			}
+			c.Length = blob.Length
 		} else {
-			c = &Checkpoint{
+			checkPoint = Checkpoint{
 				PartitionKey: blob.PartitionKey,
 				RowKey:       blob.RowKey,
 				ETag:         "", // Only set ETag when updating Index after reading the blob
@@ -148,9 +118,9 @@ func (lh *LogHarvester) ScanForChanges() {
 			}
 		}
 
-		q := &ReaderQueueItem{
-			BlobDetails: &blob,
-			Checkpoint:  c,
+		q := ReaderQueueItem{
+			BlobDetails: blob,
+			Checkpoint:  checkPoint,
 		}
 
 		lh.ReaderQueue <- q

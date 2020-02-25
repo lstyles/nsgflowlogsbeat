@@ -10,9 +10,9 @@ type Checkpoint struct {
 }
 
 // NewCheckpoint - Creates a new instance of Checkpoint
-func NewCheckpoint(partitionKey, rowKey, etag string, length, index int64) *Checkpoint {
+func NewCheckpoint(partitionKey, rowKey, etag string, length, index int64) Checkpoint {
 
-	c := &Checkpoint{
+	c := Checkpoint{
 		PartitionKey: partitionKey,
 		RowKey:       rowKey,
 		ETag:         etag,

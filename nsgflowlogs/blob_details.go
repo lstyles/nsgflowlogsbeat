@@ -32,8 +32,8 @@ func NewBlobDetails(name, etag string, length, lastModified int64) BlobDetails {
 
 	bd := BlobDetails{
 		Name:         name,
-		PartitionKey: fmt.Sprintf("%s_%s_%s_%s", strings.Replace(subscriptionID, "-", "_", 0), rgName, nsgName, mac),
-		RowKey:       fmt.Sprintf("%s_%s_%s_%s_%s", year, month, day, hour, minute),
+		PartitionKey: fmt.Sprintf("%s_%s_%s_%s_%s_%s", strings.Replace(subscriptionID, "-", "_", 0), rgName, nsgName, year, month, day),
+		RowKey:       fmt.Sprintf("%s_%s_%s", hour, minute, mac),
 		ETag:         etag,
 		Length:       length,
 		LastModified: lastModified,

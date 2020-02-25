@@ -26,7 +26,8 @@ func NewMessageProcessor(processorQueue chan string, client beat.Client) (*Messa
 	return mp, nil
 }
 
-func (mp *MessageProcessor) Run() {
+func (mp *MessageProcessor) Run(workerIndex int) {
+	logp.Info("Starting message processor worker %v", workerIndex)
 	for {
 		m, more := <-mp.ProcessorQueue
 		if more {
