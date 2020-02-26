@@ -2,43 +2,28 @@
 
 Welcome to nsgflowlogsbeat, an Azure NSG Flow Logs shipper for Logstash and Elasticsearch.
 
+## Getting ready
+
+To set up a working development environment follow the official [beat developer guide](https://www.elastic.co/guide/en/beats/devguide/7.6/newbeat-getting-ready.html) and specifically [Setting Up Your Dev Environment](https://www.elastic.co/guide/en/beats/devguide/7.6/beats-contributing.html#setting-up-dev-environment).
+
+Once set up, and you can successfully build the official beats repo, clone this repo to your `${GOPATH}`.
+
 Ensure that this folder is at the following location:
 `${GOPATH}/src/github.com/lstyles/nsgflowlogsbeat`
 
-## Getting Started with {Beat}
-
 ### Requirements
 
-* [Golang](https://golang.org/dl/) 1.7
-
-### Init Project
-To get running with {Beat} and also install the
-dependencies, run the following command:
-
-```
-make setup
-```
-
-It will create a clean git history for each major step. Note that you can always rewrite the history if you wish before pushing your changes.
-
-To push {Beat} in the git repository, run the following commands:
-
-```
-git remote set-url origin https://github.com/lstyles/nsgflowlogsbeat
-git push origin master
-```
-
-For further development, check out the [beat developer guide](https://www.elastic.co/guide/en/beats/libbeat/current/new-beat.html).
+Nsgflowlogsbeat builds on top of the libbeat framework. Please follow the official [Contributing to beats](https://www.elastic.co/guide/en/beats/devguide/7.6/beats-contributing.html#beats-contributing) guide
 
 ### Build
 
-To build the binary for {Beat} run the command below. This will generate a binary
-in the same directory with the name nsgflowlogsbeat.
+To build the binary for nsgflowlogsbeat run the command below. This will generate a binary in the same directory with the name nsgflowlogsbeat.
 
 ```
-make
+mage build
 ```
 
+If you have problems running mage, install it as described [here](https://github.com/magefile/mage), then add `${GOPATH}/bin` to your path.
 
 ### Run
 
@@ -51,7 +36,7 @@ To run {Beat} with debugging output enabled, run:
 
 ### Test
 
-To test {Beat}, run the following command:
+To test nsgflowlogsbeat, run the following command:
 
 ```
 make testsuite
@@ -79,7 +64,7 @@ make update
 
 ### Cleanup
 
-To clean  {Beat} source code, run the following command:
+To clean  nsgflowlogsbeat source code, run the following command:
 
 ```
 make fmt
@@ -94,7 +79,7 @@ make clean
 
 ### Clone
 
-To clone {Beat} from the git repository, run the following commands:
+To clone nsgflowlogsbeat from the git repository, run the following commands:
 
 ```
 mkdir -p ${GOPATH}/src/github.com/lstyles/nsgflowlogsbeat
