@@ -1,4 +1,4 @@
-package nsgflowlogs
+package storagereader
 
 import (
 	"fmt"

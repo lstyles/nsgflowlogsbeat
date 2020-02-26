@@ -1,6 +1,6 @@
-# {Beat}
+# nsgflowlogsbeat
 
-Welcome to {Beat}.
+Welcome to nsgflowlogsbeat, an Azure NSG Flow Logs shipper for Logstash and Elasticsearch.
 
 Ensure that this folder is at the following location:
 `${GOPATH}/src/github.com/lstyles/nsgflowlogsbeat`

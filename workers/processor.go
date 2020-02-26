@@ -1,49 +1,62 @@
-package nsgflowlogs
+package workers
 
 import (
 	"encoding/json"
 	"strings"
+	"sync"
 
 	"github.com/elastic/beats/libbeat/beat"
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
 )
 
-// MessageProcessor - used to process JSON arrays coming from blobs
-type MessageProcessor struct {
-	ProcessorQueue chan string
+// Processor worker is responsible for parsing received byte array
+// into individual messages and passing them to beat client for publishing
+type Processor struct {
+	processorQueue chan ProcessorQueueItem
 	client         beat.Client
 }
 
-// NewMessageProcessor - Creates new instance of MessageProcessor
-func NewMessageProcessor(processorQueue chan string, client beat.Client) (*MessageProcessor, error) {
+// NewProcessor creates a new instance of Processor worker
+func NewProcessor(processorQueue chan ProcessorQueueItem, publisher beat.Pipeline) (*Processor, error) {
 
-	mp := &MessageProcessor{
-		ProcessorQueue: processorQueue,
+	client, err := publisher.Connect()
+	if err != nil {
+		return nil, err
+	}
+
+	p := &Processor{
+		processorQueue: processorQueue,
 		client:         client,
 	}
 
-	return mp, nil
+	return p, nil
 }
 
-func (mp *MessageProcessor) Run(workerIndex int) {
-	logp.Info("Starting message processor worker %v", workerIndex)
+// StartWorker starts the reader worker
+func (p *Processor) StartWorker(workerIndex int, wg *sync.WaitGroup) {
+
+	logp.Info("Starting message processor worker #%v", workerIndex)
+
+	defer wg.Done()
+
 	for {
-		m, more := <-mp.ProcessorQueue
+		item, more := <-p.processorQueue
 		if more {
-			go mp.ProcessMessages(m)
+			go p.processMessages(item)
 		} else {
+			logp.Info("Stopping message processor worker #%v", workerIndex)
 			return
 		}
 	}
 }
 
-func (mp *MessageProcessor) ProcessMessages(data string) {
+func (p *Processor) processMessages(queueItem ProcessorQueueItem) {
 
 	var messages []NsgMessage
 	var events []beat.Event
 
-	json.Unmarshal([]byte(data), &messages)
+	json.Unmarshal(*queueItem.Data, &messages)
 
 	logp.Info("Got: %v messages", len(messages))
 
@@ -55,10 +68,10 @@ func (mp *MessageProcessor) ProcessMessages(data string) {
 					event := beat.Event{
 						Timestamp: message.Time,
 						Fields: common.MapStr{
-							"systemId":           message.SystemId,
+							"systemId":           message.SystemID,
 							"macAddress":         message.MacAddress,
 							"category":           message.Category,
-							"resourceId":         message.ResourceId,
+							"resourceId":         message.ResourceID,
 							"operationName":      message.OperationName,
 							"version":            message.Properties.Version,
 							"nsgRuleName":        outerFlow.Rule,
@@ -76,6 +89,11 @@ func (mp *MessageProcessor) ProcessMessages(data string) {
 							"packetsDtoS":        tuple[11],
 							"bytesDtoS":          tuple[12],
 						},
+						Private: common.MapStr{
+							"blobName":  queueItem.Name,
+							"blobIndex": queueItem.Index,
+							"blobETag":  queueItem.ETag,
+						},
 					}
 
 					events = append(events, event)
@@ -83,5 +101,5 @@ func (mp *MessageProcessor) ProcessMessages(data string) {
 			}
 		}
 	}
-	mp.client.PublishAll(events)
+	p.client.PublishAll(events)
 }

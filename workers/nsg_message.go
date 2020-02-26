@@ -1,13 +1,13 @@
-﻿package nsgflowlogs
+﻿package workers
 
 import "time"
 
 type NsgMessage struct {
 	Time          time.Time            `json:"time"`
-	SystemId      string               `json:"systemId"`
+	SystemID      string               `json:"systemId"`
 	MacAddress    string               `json:"macAddress"`
 	Category      string               `json:"category"`
-	ResourceId    string               `json:"resourceId"`
+	ResourceID    string               `json:"resourceId"`
 	OperationName string               `json:"operationName"`
 	Properties    NsgMessageProperties `json:"properties"`
 }

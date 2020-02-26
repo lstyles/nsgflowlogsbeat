@@ -32,13 +32,7 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 		c.ScanFrequency = 1 * time.Minute
 	}
 
-	if len(c.StorageAccountName) == 0 || len(c.StorageAccountKey) == 0 {
-		panic("Storage account name and key are both required.")
-	}
-
-	logp.Info("Storage account name %s is %d characters long", c.StorageAccountName, len(c.StorageAccountName))
-
-	lh, lherr := nsgflowlogs.NewLogHarvester(&c)
+	lh, lherr := nsgflowlogs.NewLogHarvester(&c, b.Publisher)
 	if lherr != nil {
 		panic(lherr)
 	}
@@ -48,6 +42,7 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 		config:       c,
 		LogHarvester: lh,
 	}
+
 	return bt, nil
 }
 
@@ -63,36 +58,7 @@ func (bt *nsgflowlogsbeat) Run(b *beat.Beat) error {
 		case <-ticker.C:
 		}
 
-		// Start Message Processor workers
-		for mpw := 1; mpw <= bt.config.MessageProcessorWorkers; mpw++ {
-			// Run message proccessor worker
-			client, err := b.Publisher.Connect()
-			if err != nil {
-				panic(err)
-			}
-			mp, mperr := nsgflowlogs.NewMessageProcessor(bt.LogHarvester.ProcessorQueue, client)
-			if mperr != nil {
-				panic(mperr)
-			}
-
-			go mp.Run(mpw)
-		}
-
-		// Start Storage Reader workers
-		for srw := 1; srw <= bt.config.StorageReaderWorkers; srw++ {
-			// Run storage reader worker
-			sr, err := nsgflowlogs.NewStorageReader(bt.config.StorageAccountName, bt.config.StorageAccountKey, bt.config.ContainerName, bt.LogHarvester.CheckpointsTable, bt.LogHarvester.ReaderQueue, bt.LogHarvester.ProcessorQueue)
-			if err != nil {
-				panic(err)
-			}
-
-			go sr.Run(srw)
-		}
-
-		// Scan for changes
-		bt.LogHarvester.ScanForChanges()
-
-		// Wait for workers
+		bt.LogHarvester.ScanAndProcessUpdates()
 	}
 }
 
