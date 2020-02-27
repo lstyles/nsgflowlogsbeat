@@ -6298,7 +6298,7 @@ None
 *`systemId`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+Network Security Group resource Id
 
 
 type: keyword
@@ -6310,7 +6310,7 @@ required: True
 *`macAddress`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The MAC address of the NIC for the VM where the flow was collected
 
 
 type: keyword
@@ -6322,7 +6322,7 @@ required: True
 *`category`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The category of the event. The category is always NetworkSecurityGroupFlowEvent
 
 
 type: keyword
@@ -6334,7 +6334,7 @@ required: True
 *`resourceId`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION        
+The resource Id of the NSG        
 
 
 type: keyword
@@ -6346,7 +6346,7 @@ required: True
 *`operationName`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+Always NetworkSecurityGroupFlowEvents
 
 
 type: keyword
@@ -6358,7 +6358,7 @@ required: True
 *`version`*::
 +
 --
-Version of NSG Flow logs
+Version number of the Flow Log event schema
 
 
 type: long
@@ -6368,7 +6368,7 @@ type: long
 *`nsgRuleName`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+Rule for which the flows are listed
 
 
 type: keyword
@@ -6378,7 +6378,7 @@ type: keyword
 *`startTime`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+This value is the time stamp of when the flow occurred in UNIX epoch format
 
 
 type: long
@@ -6388,7 +6388,7 @@ type: long
 *`sourceAddress`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The source IP
 
 
 type: keyword
@@ -6398,7 +6398,7 @@ type: keyword
 *`destinationAddress`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The destination IP
 
 
 type: keyword
@@ -6408,7 +6408,7 @@ type: keyword
 *`sourcePort`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The source port
 
 
 type: long
@@ -6418,7 +6418,7 @@ type: long
 *`destinationPort`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The destination Port
 
 
 type: long
@@ -6428,7 +6428,7 @@ type: long
 *`transportProtocol`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The protocol of the flow. Valid values are T for TCP and U for UDP
 
 
 type: keyword
@@ -6438,7 +6438,7 @@ type: keyword
 *`deviceDirection`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The direction of the traffic flow. Valid values are I for inbound and O for outbound
 
 
 type: keyword
@@ -6448,7 +6448,7 @@ type: keyword
 *`deviceAction`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+Whether traffic was allowed or denied. Valid values are A for allowed and D for denied
 
 
 type: keyword
@@ -6458,7 +6458,7 @@ type: keyword
 *`flowState`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+Version 2 Only - Captures the state of the flow. Possible states are B: Begin, when a flow is created. Statistics aren't provided. C: Continuing for an ongoing flow. Statistics are provided at 5-minute intervals. E: End, when a flow is terminated. Statistics are provided
 
 
 type: keyword
@@ -6468,7 +6468,7 @@ type: keyword
 *`packetsStoD`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+Version 2 Only The total number of TCP or UDP packets sent from source to destination since last update
 
 
 type: long
@@ -6478,7 +6478,7 @@ type: long
 *`bytesStoD`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+Version 2 Only The total number of TCP or UDP packet bytes sent from source to destination since last update. Packet bytes include the packet header and payload
 
 
 type: long
@@ -6488,7 +6488,7 @@ type: long
 *`packetsDtoS`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION
+The total number of TCP or UDP packets sent from destination to source since last update
 
 
 type: long
@@ -6498,7 +6498,7 @@ type: long
 *`bytesDtoS`*::
 +
 --
-PLEASE UPDATE DOCUMENTATION        
+Version 2 Only The total number of TCP and UDP packet bytes sent from destination to source since last update. Packet bytes include packet header and payload
 
 
 type: long

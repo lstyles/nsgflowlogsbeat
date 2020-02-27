@@ -14,10 +14,8 @@ import (
 
 // nsgflowlogsbeat configuration.
 type nsgflowlogsbeat struct {
-	done         chan struct{}
-	config       config.Config
-	client       beat.Client
-	LogHarvester *nsgflowlogs.LogHarvester
+	done   chan struct{}
+	config config.Config
 }
 
 // New creates an instance of nsgflowlogsbeat.
@@ -32,15 +30,9 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 		c.ScanFrequency = 1 * time.Minute
 	}
 
-	lh, lherr := nsgflowlogs.NewLogHarvester(&c, b.Publisher)
-	if lherr != nil {
-		panic(lherr)
-	}
-
 	bt := &nsgflowlogsbeat{
-		done:         make(chan struct{}),
-		config:       c,
-		LogHarvester: lh,
+		done:   make(chan struct{}),
+		config: c,
 	}
 
 	return bt, nil
@@ -58,12 +50,16 @@ func (bt *nsgflowlogsbeat) Run(b *beat.Beat) error {
 		case <-ticker.C:
 		}
 
-		bt.LogHarvester.ScanAndProcessUpdates()
+		lh, err := nsgflowlogs.NewLogHarvester(&bt.config, b.Publisher)
+		if err != nil {
+			logp.Error(err)
+		}
+
+		lh.ScanAndProcessUpdates()
 	}
 }
 
 // Stop stops nsgflowlogsbeat.
 func (bt *nsgflowlogsbeat) Stop() {
-	bt.client.Close()
 	close(bt.done)
 }

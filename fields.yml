@@ -4395,84 +4395,87 @@
       type: keyword
       required: true
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        Network Security Group resource Id
     - name: macAddress
       type: keyword
       required: true
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The MAC address of the NIC for the VM where the flow was collected
     - name: category
       type: keyword
       required: true
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The category of the event. The category is always NetworkSecurityGroupFlowEvent
     - name: resourceId
       type: keyword
       required: true
       description: >
-        PLEASE UPDATE DOCUMENTATION        
+        The resource Id of the NSG        
     - name: operationName
       type: keyword
       required: true
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        Always NetworkSecurityGroupFlowEvents
     - name: version
       type: long
       description: >
-        Version of NSG Flow logs
+        Version number of the Flow Log event schema
     - name: nsgRuleName
       type: keyword
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        Rule for which the flows are listed
     - name: startTime
       type: long
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        This value is the time stamp of when the flow occurred in UNIX epoch format
     - name: sourceAddress
       type: keyword
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The source IP
     - name: destinationAddress
       type: keyword
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The destination IP
     - name: sourcePort
       type: long
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The source port
     - name: destinationPort
       type: long
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The destination Port
     - name: transportProtocol
       type: keyword
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The protocol of the flow. Valid values are T for TCP and U for UDP
     - name: deviceDirection
       type: keyword
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The direction of the traffic flow. Valid values are I for inbound and O for outbound
     - name: deviceAction
       type: keyword
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        Whether traffic was allowed or denied. Valid values are A for allowed and D for denied
     - name: flowState
       type: keyword
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        Version 2 Only - Captures the state of the flow. Possible states are B: Begin, when a flow is created.
+        Statistics aren't provided. C: Continuing for an ongoing flow. Statistics are provided at 5-minute intervals.
+        E: End, when a flow is terminated. Statistics are provided
     - name: packetsStoD
       type: long
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        Version 2 Only The total number of TCP or UDP packets sent from source to destination since last update
     - name: bytesStoD
       type: long
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        Version 2 Only The total number of TCP or UDP packet bytes sent from source to destination since last update.
+        Packet bytes include the packet header and payload
     - name: packetsDtoS
       type: long
       description: >
-        PLEASE UPDATE DOCUMENTATION
+        The total number of TCP or UDP packets sent from destination to source since last update
     - name: bytesDtoS
       type: long
       description: >
-        PLEASE UPDATE DOCUMENTATION        
+        Version 2 Only The total number of TCP and UDP packet bytes sent from destination to source since last update. Packet bytes include packet header and payload

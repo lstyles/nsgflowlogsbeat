@@ -19,7 +19,6 @@ type LogHarvester struct {
 	publisher       beat.Pipeline
 	CheckpointTable *checkpoint.Table
 	ReaderQueue     chan workers.ReaderQueueItem
-	ProcessorQueue  chan workers.ProcessorQueueItem
 }
 
 // NewLogHarvester - Creates a new instance of LogHarvester
@@ -38,8 +37,7 @@ func NewLogHarvester(config *config.Config, publisher beat.Pipeline) (*LogHarves
 		config:          config,
 		publisher:       publisher,
 		CheckpointTable: ct,
-		ReaderQueue:     make(chan workers.ReaderQueueItem),
-		ProcessorQueue:  make(chan workers.ProcessorQueueItem),
+		ReaderQueue:     make(chan workers.ReaderQueueItem, 20000),
 	}
 
 	return lh, nil
@@ -52,23 +50,12 @@ func (lh *LogHarvester) ScanAndProcessUpdates() {
 	for mpw := 1; mpw <= lh.config.MessageProcessorWorkers; mpw++ {
 		// Run message proccessor worker
 		wg.Add(1)
-		mp, mperr := workers.NewProcessor(lh.ProcessorQueue, lh.publisher)
+		mp, mperr := workers.NewProcessor(lh.publisher, lh.config, lh.ReaderQueue)
 		if mperr != nil {
 			panic(mperr)
 		}
 
 		go mp.StartWorker(mpw, &wg)
-	}
-	// Start storage readers
-	for srw := 1; srw <= lh.config.StorageReaderWorkers; srw++ {
-		// Run storage reader worker
-		wg.Add(1)
-		sr, err := workers.NewReader(lh.config, lh.ReaderQueue, lh.ProcessorQueue)
-		if err != nil {
-			panic(err)
-		}
-
-		go sr.StartWorker(srw, &wg)
 	}
 
 	// Scan for updated blobs
@@ -134,6 +121,7 @@ func (lh *LogHarvester) ScanForChanges(wg *sync.WaitGroup) {
 			Length: blob.Length,
 		}
 
+		logp.Debug("trace", "Sending blob %v/%v to the reader queue", i, blobsCount)
 		lh.ReaderQueue <- q
 	}
 

@@ -11,9 +11,6 @@ nsgflowlogsbeat:
   # Storage account key
   storage_account_key: ''
   
-  # Number of workers downloading blobs
-  #storage_reader_workers: 2
-  
   # Name of the storage account container  
   container_name: ''
   
@@ -24,7 +21,7 @@ nsgflowlogsbeat:
   # Ignores NSG logs older than specified time offset
   ignore_older: 0
   
-  # Number of workers parsing strings sent from storage readers to JSON
+  # Number of workers
   message_processor_workers: 4
 
 #================================ General =====================================
