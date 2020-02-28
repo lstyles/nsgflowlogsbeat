@@ -7,19 +7,21 @@ nsgflowlogsbeat:
   #scan_frequency: 30s
 
   # Storage account name where NSG logs are stored
-  storage_account_name: ''
+  storage_account_name: '<storage account name>'
   # Storage account key
-  storage_account_key: ''
+  storage_account_key: '<storage account key>'
   
   # Name of the storage account container  
-  container_name: ''
+  #container_name: 'insights-logs-networksecuritygroupflowevent'
   
   # Checkpoints table name
-  checkpoints_table_name: 'insights-logs-networksecuritygroupflowevent'
-  # Storage table operations timeout in MS
-  checkpoints_table_timeout: 15
+  #checkpoints_table_name: 'nsgflowlogsbeat_checkpoints'
+
+  # Storage table operations timeout in seconds
+  #checkpoints_table_timeout: 15
+
   # Ignores NSG logs older than specified time offset
-  ignore_older: 0
+  #ignore_older: 10m
   
   # Number of workers
   #workers: 4

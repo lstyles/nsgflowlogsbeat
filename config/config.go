@@ -20,7 +20,6 @@ type Config struct {
 	CheckpointsTableTimeout uint          `config:"checkpoints_table_timeout"`
 	IgnoreOlder             time.Duration `config:"ignore_older"`
 	Workers                 int           `config:"workers"`
-	ShutdownTimeout         time.Duration `config:"shutdown_timeout"`
 }
 
 // DefaultConfig - default configuration settings
@@ -29,9 +28,8 @@ var DefaultConfig = Config{
 	ContainerName:           "insights-logs-networksecuritygroupflowevent",
 	CheckpointsTableName:    "nsgflowlogsbeat_checkpoints",
 	CheckpointsTableTimeout: 15,
-	IgnoreOlder:             10 * time.Second,
+	IgnoreOlder:             10 * time.Minute,
 	Workers:                 4,
-	ShutdownTimeout:         15 * time.Second,
 }
 
 // Validate validates the configuration and returns an error describing all problems or nil if there are none

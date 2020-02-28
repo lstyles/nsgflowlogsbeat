@@ -9,6 +9,7 @@ type Checkpoint struct {
 	Length       int64
 }
 
+// NewCheckpoint creates a new instance of Checkpoint
 func NewCheckpoint(partitionKey, rowKey string) *Checkpoint {
 	return &Checkpoint{
 		PartitionKey: partitionKey,

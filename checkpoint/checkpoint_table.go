@@ -82,19 +82,20 @@ func (ct *Table) GetCheckpoint(partitionKey, rowKey string) (*Checkpoint, error)
 			Index:        index,
 		}
 		return r, nil
-	} else {
-		// Checkpoint doesn't exist, create and return
-		c := NewCheckpoint(partitionKey, rowKey)
-
-		return c, nil
 	}
+
+	// Checkpoint doesn't exist, create and return
+	c := NewCheckpoint(partitionKey, rowKey)
+
+	return c, nil
 }
 
 // CreateOrUpdateCheckpoint creates or updates checkpoint in checkpoints table
 func (ct *Table) CreateOrUpdateCheckpoint(checkpoint *Checkpoint) error {
 
 	logp.Debug(
-		"checkpoint_table", "Creating or updating checkpoint. PartitionKey: %s, RowKey: %s, ETag: %s, Index: %v.",
+		"checkpoint_table",
+		"Creating or updating checkpoint. PartitionKey: %s, RowKey: %s, ETag: %s, Index: %v, Length: %v.",
 		checkpoint.PartitionKey,
 		checkpoint.RowKey,
 		checkpoint.ETag,
@@ -126,15 +127,20 @@ func (ct *Table) CreateOrUpdateCheckpoint(checkpoint *Checkpoint) error {
 	return nil
 }
 
+// UpdateCheckpoint updates etag and index on checkpoint identified by partition key and row key.
 func (ct *Table) UpdateCheckpoint(partitionKey, rowKey, etag string, index int64) {
 
-	logp.Info("Updating checkpoint Partition Key: %s, Row Key: %s, ETag: %s, Index: %d", partitionKey, rowKey, etag, index)
+	logp.Debug(
+		"checkpoint_table",
+		"Updating checkpoint. Partition Key: %s, Row Key: %s, ETag: %s, Index: %d",
+		partitionKey,
+		rowKey,
+		etag,
+		index,
+	)
 	c, err := ct.GetCheckpoint(partitionKey, rowKey)
 	if err != nil {
 		logp.Error(err)
-	}
-	if c.Index == 0 {
-		logp.Warn("This should never happen")
 	}
 
 	c.ETag = etag

@@ -63,7 +63,7 @@ func NewLogProcessor(b *beat.Beat, c *config.Config, done chan struct{}) (*LogPr
 
 func (lp *LogProcessor) Process(done chan struct{}) {
 
-	logp.Info("Processing")
+	logp.Info("Processing NSG flow logs")
 
 	// Get list of blobs to process
 	var wg sync.WaitGroup
@@ -120,7 +120,6 @@ func (lp *LogProcessor) ScanForUpdatedBlobs(wg *sync.WaitGroup) {
 	for i, blob := range *blobsToProcess {
 		i++
 
-		logp.Info("Getting checkpoint for blob %s %s %d", blob.PartitionKey, blob.RowKey, i)
 		c, err := lp.checkpointTable.GetCheckpoint(blob.PartitionKey, blob.RowKey)
 		if err != nil {
 			logp.Error(err)
@@ -131,7 +130,7 @@ func (lp *LogProcessor) ScanForUpdatedBlobs(wg *sync.WaitGroup) {
 
 		c.Length = blob.Length
 		if finishFile {
-			c.Index = blob.Length
+			logp.Info("This happened...")
 		}
 
 		logp.Info("Blob length is %d. Updating checkpoint", c.Length)
@@ -141,9 +140,9 @@ func (lp *LogProcessor) ScanForUpdatedBlobs(wg *sync.WaitGroup) {
 			continue
 		}
 
-		if finishFile {
-			continue
-		}
+		//if finishFile {
+		//	continue
+		//}
 
 		if blob.ETag == c.ETag {
 			logp.Info("Blob ETag hasn't changed. Skipping.")

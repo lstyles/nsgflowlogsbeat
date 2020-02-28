@@ -2,7 +2,45 @@
 
 Welcome to nsgflowlogsbeat, an Azure NSG Flow Logs shipper for Logstash and Elasticsearch.
 
-## Getting ready
+## Usage
+
+Configuration:
+
+```
+############################# {Beat} ######################################
+
+nsgflowlogsbeat:
+  # Defines how often storage account is scanned for changes
+  #scan_frequency: 30s
+
+  # Storage account name where NSG logs are stored
+  storage_account_name: '<storage account name>'
+  # Storage account key
+  storage_account_key: '<storage account key>'
+  
+  # Name of the storage account container  
+  #container_name: 'insights-logs-networksecuritygroupflowevent'
+  
+  # Checkpoints table name
+  #checkpoints_table_name: 'nsgflowlogsbeat_checkpoints'
+
+  # Storage table operations timeout in seconds
+  #checkpoints_table_timeout: 15
+
+  # Ignores NSG logs older than specified time offset
+  #ignore_older: 10m
+  
+  # Number of workers
+  #workers: 4
+```
+
+Running the beat:
+
+```
+./nsgflowlogsbeat -c nsgflowlogsbeat.yml -e
+```
+
+## Development
 
 To set up a working development environment follow the official [beat developer guide](https://www.elastic.co/guide/en/beats/devguide/7.6/newbeat-getting-ready.html) and specifically [Setting Up Your Dev Environment](https://www.elastic.co/guide/en/beats/devguide/7.6/beats-contributing.html#setting-up-dev-environment).
 
