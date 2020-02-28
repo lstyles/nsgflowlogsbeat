@@ -15,7 +15,7 @@ nsgflowlogsbeat:
   #container_name: 'insights-logs-networksecuritygroupflowevent'
   
   # Checkpoints table name
-  #checkpoints_table_name: 'nsgflowlogsbeat_checkpoints'
+  #checkpoints_table_name: 'nsgflowlogsbeatcheckpoints'
 
   # Storage table operations timeout in seconds
   #checkpoints_table_timeout: 15

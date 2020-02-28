@@ -126,7 +126,7 @@ func (sr *StorageReader) ReadBlobData(path string, startIndex int64) []byte {
 	blobURL := sr.container.NewBlockBlobURL(path)
 	downloadResponse, err := blobURL.Download(ctx, startIndex, azblob.CountToEnd, azblob.BlobAccessConditions{}, false)
 
-	logp.Debug("storage_reader", "Attempting to download blob %s at %v", path, startIndex)
+	logp.Info("Attempting to download blob %s at %v", path, startIndex)
 
 	bodyStream := downloadResponse.Body(azblob.RetryReaderOptions{MaxRetryRequests: 10})
 

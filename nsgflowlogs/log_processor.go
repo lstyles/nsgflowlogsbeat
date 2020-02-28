@@ -84,9 +84,6 @@ func (lp *LogProcessor) Process(done chan struct{}) {
 	wg.Add(1)
 	go lp.ScanForUpdatedBlobs(&wg)
 
-	logp.Info("Waiting for all workers to finish")
-	logp.Info("Waiting for acker to finish")
-
 	wg.Wait()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

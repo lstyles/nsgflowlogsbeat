@@ -39,7 +39,6 @@ func (a *EventACKer) ACKLastEvent(data []interface{}) {
 
 	for _, d := range data {
 
-		logp.Info("Acking event %v", d)
 		msg := d.(common.MapStr)
 		batch_complete, err := msg.GetValue("batch_complete")
 		if err != nil {

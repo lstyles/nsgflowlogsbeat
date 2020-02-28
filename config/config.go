@@ -26,7 +26,7 @@ type Config struct {
 var DefaultConfig = Config{
 	ScanFrequency:           30 * time.Second,
 	ContainerName:           "insights-logs-networksecuritygroupflowevent",
-	CheckpointsTableName:    "nsgflowlogsbeat_checkpoints",
+	CheckpointsTableName:    "nsgflowlogsbeatcheckpoints",
 	CheckpointsTableTimeout: 15,
 	IgnoreOlder:             10 * time.Minute,
 	Workers:                 4,
