@@ -12,25 +12,31 @@ import (
 	"github.com/lstyles/nsgflowlogsbeat/nsgflowlogs"
 )
 
-// nsgflowlogsbeat configuration.
-type nsgflowlogsbeat struct {
-	done   chan struct{}
+// Nsgflowlogsbeat is used to conform to the beat interface.
+type Nsgflowlogsbeat struct {
 	config config.Config
+	done   chan struct{}
 }
 
 // New creates an instance of nsgflowlogsbeat.
 func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
+
 	c := config.DefaultConfig
 	if err := cfg.Unpack(&c); err != nil {
-		return nil, fmt.Errorf("Error reading config file: %v", err)
+		return nil, fmt.Errorf("Error reading configuration file: %v", err)
 	}
 
 	if c.ScanFrequency.Seconds() < 30 {
 		logp.Warn("Chosen interval of %s is not valid. Changing to default 30s", c.ScanFrequency.String())
-		c.ScanFrequency = 1 * time.Minute
+		c.ScanFrequency = 30 * time.Second
 	}
 
-	bt := &nsgflowlogsbeat{
+	logp.Debug("nsgflowlogsbeat", "Validating configuration")
+	if err := c.Validate(); err != nil {
+		panic(err)
+	}
+
+	bt := &Nsgflowlogsbeat{
 		done:   make(chan struct{}),
 		config: c,
 	}
@@ -39,7 +45,7 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 }
 
 // Run starts nsgflowlogsbeat.
-func (bt *nsgflowlogsbeat) Run(b *beat.Beat) error {
+func (bt *Nsgflowlogsbeat) Run(b *beat.Beat) error {
 	logp.Info("nsgflowlogsbeat is running! Hit CTRL-C to stop it.")
 
 	ticker := time.NewTicker(bt.config.ScanFrequency)
@@ -50,16 +56,19 @@ func (bt *nsgflowlogsbeat) Run(b *beat.Beat) error {
 		case <-ticker.C:
 		}
 
-		lh, err := nsgflowlogs.NewLogHarvester(&bt.config, b.Publisher)
+		lp, err := nsgflowlogs.NewLogProcessor(b, &bt.config, bt.done)
 		if err != nil {
-			logp.Error(err)
+			panic(err)
 		}
 
-		lh.ScanAndProcessUpdates()
+		lp.Process(bt.done)
 	}
 }
 
 // Stop stops nsgflowlogsbeat.
-func (bt *nsgflowlogsbeat) Stop() {
-	close(bt.done)
+func (bt *Nsgflowlogsbeat) Stop() {
+	logp.Info("Stopping nsgflowlogsbeat...")
+	if bt.done != nil {
+		close(bt.done)
+	}
 }

@@ -3,7 +3,6 @@ package storagereader
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -31,18 +30,6 @@ func NewStorageReader(accountName, accountKey, containerName string) (*StorageRe
 		"storage_reader",
 		"Creating new instance of storage reader",
 	)
-
-	if len(accountName) == 0 {
-		return nil, errors.New("account name is required")
-	}
-
-	if len(accountKey) == 0 {
-		return nil, errors.New("account key is required")
-	}
-
-	if len(containerName) == 0 {
-		return nil, errors.New("checkpoints table name is required")
-	}
 
 	c := &Config{
 		accountName:   accountName,
@@ -105,14 +92,18 @@ func (sr *StorageReader) ListBlobsModifiedBetween(startTime, endTime int64) *[]B
 			logp.Error(err)
 			continue
 		}
-		i++
 
 		for _, blobInfo := range listBlob.Segment.BlobItems {
 
+			i++
+
 			lastModified := blobInfo.Properties.LastModified.UTC().Unix()
 			if lastModified > startTime && lastModified < endTime {
-				length := blobInfo.Properties.ContentLength
-				blobItems = append(blobItems, NewBlobDetails(blobInfo.Name, string(blobInfo.Properties.Etag), *length, lastModified))
+				length := *blobInfo.Properties.ContentLength
+				if length == int64(0) {
+					continue
+				}
+				blobItems = append(blobItems, NewBlobDetails(blobInfo.Name, string(blobInfo.Properties.Etag), length, lastModified))
 			}
 		}
 	}
@@ -128,12 +119,12 @@ func (sr *StorageReader) ListBlobsModifiedBetween(startTime, endTime int64) *[]B
 }
 
 // ReadBlobData - Reads blob from specified starting location
-func (sr *StorageReader) ReadBlobData(path string, startIndex, endIndex int64) []byte {
+func (sr *StorageReader) ReadBlobData(path string, startIndex int64) []byte {
 
 	ctx := context.Background()
 
 	blobURL := sr.container.NewBlockBlobURL(path)
-	downloadResponse, err := blobURL.Download(ctx, startIndex, endIndex, azblob.BlobAccessConditions{}, false)
+	downloadResponse, err := blobURL.Download(ctx, startIndex, azblob.CountToEnd, azblob.BlobAccessConditions{}, false)
 
 	logp.Debug("storage_reader", "Attempting to download blob %s at %v", path, startIndex)
 

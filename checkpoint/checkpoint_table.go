@@ -1,7 +1,6 @@
 package checkpoint
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -32,18 +31,6 @@ func NewCheckpointTable(accountName, accountKey, checkpointsTableName string, ti
 		"checkpoint_table",
 		"Creating new instance of checkpoint table",
 	)
-
-	if len(accountName) == 0 {
-		return nil, errors.New("account name is required")
-	}
-
-	if len(accountKey) == 0 {
-		return nil, errors.New("account key is required")
-	}
-
-	if len(checkpointsTableName) == 0 {
-		return nil, errors.New("checkpoints table name is required")
-	}
 
 	c := &Config{
 		accountName: accountName,
@@ -95,9 +82,12 @@ func (ct *Table) GetCheckpoint(partitionKey, rowKey string) (*Checkpoint, error)
 			Index:        index,
 		}
 		return r, nil
-	}
+	} else {
+		// Checkpoint doesn't exist, create and return
+		c := NewCheckpoint(partitionKey, rowKey)
 
-	return nil, nil
+		return c, nil
+	}
 }
 
 // CreateOrUpdateCheckpoint creates or updates checkpoint in checkpoints table
@@ -109,6 +99,7 @@ func (ct *Table) CreateOrUpdateCheckpoint(checkpoint *Checkpoint) error {
 		checkpoint.RowKey,
 		checkpoint.ETag,
 		checkpoint.Index,
+		checkpoint.Length,
 	)
 
 	tableBatch := ct.table.NewBatch()
@@ -122,6 +113,7 @@ func (ct *Table) CreateOrUpdateCheckpoint(checkpoint *Checkpoint) error {
 	m := make(map[string]interface{})
 	m["ETag"] = checkpoint.ETag
 	m["Index"] = checkpoint.Index
+	m["Length"] = checkpoint.Length
 
 	entity.Properties = m
 
@@ -132,6 +124,24 @@ func (ct *Table) CreateOrUpdateCheckpoint(checkpoint *Checkpoint) error {
 	}
 
 	return nil
+}
+
+func (ct *Table) UpdateCheckpoint(partitionKey, rowKey, etag string, index int64) {
+
+	logp.Info("Updating checkpoint Partition Key: %s, Row Key: %s, ETag: %s, Index: %d", partitionKey, rowKey, etag, index)
+	c, err := ct.GetCheckpoint(partitionKey, rowKey)
+	if err != nil {
+		logp.Error(err)
+	}
+	if c.Index == 0 {
+		logp.Warn("This should never happen")
+	}
+
+	c.ETag = etag
+	c.Index = index
+	c.Length = index
+
+	ct.CreateOrUpdateCheckpoint(c)
 }
 
 func (ct *Table) initialize() error {

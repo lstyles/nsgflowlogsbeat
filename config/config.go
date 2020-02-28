@@ -3,7 +3,12 @@
 
 package config
 
-import "time"
+import (
+	"fmt"
+	"time"
+
+	"github.com/joeshaw/multierror"
+)
 
 // Config - all configuration settings
 type Config struct {
@@ -14,7 +19,8 @@ type Config struct {
 	CheckpointsTableName    string        `config:"checkpoints_table_name"`
 	CheckpointsTableTimeout uint          `config:"checkpoints_table_timeout"`
 	IgnoreOlder             time.Duration `config:"ignore_older"`
-	MessageProcessorWorkers int           `config:"message_processor_workers"`
+	Workers                 int           `config:"workers"`
+	ShutdownTimeout         time.Duration `config:"shutdown_timeout"`
 }
 
 // DefaultConfig - default configuration settings
@@ -24,5 +30,29 @@ var DefaultConfig = Config{
 	CheckpointsTableName:    "nsgflowlogsbeat_checkpoints",
 	CheckpointsTableTimeout: 15,
 	IgnoreOlder:             10 * time.Second,
-	MessageProcessorWorkers: 4,
+	Workers:                 4,
+	ShutdownTimeout:         15 * time.Second,
+}
+
+// Validate validates the configuration and returns an error describing all problems or nil if there are none
+func (cfg Config) Validate() error {
+	var errs multierror.Errors
+
+	if len(cfg.StorageAccountName) == 0 {
+		errs = append(errs, fmt.Errorf("account name is required"))
+	}
+
+	if len(cfg.StorageAccountKey) == 0 {
+		errs = append(errs, fmt.Errorf("account key is required"))
+	}
+
+	if len(cfg.CheckpointsTableName) == 0 {
+		errs = append(errs, fmt.Errorf("checkpoints table name is required"))
+	}
+
+	if len(cfg.ContainerName) == 0 {
+		errs = append(errs, fmt.Errorf("container name is required"))
+	}
+
+	return errs.Err()
 }

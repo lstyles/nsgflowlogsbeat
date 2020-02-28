@@ -22,7 +22,7 @@ nsgflowlogsbeat:
   ignore_older: 0
   
   # Number of workers
-  message_processor_workers: 4
+  #workers: 4
 
 #================================ General =====================================
 
