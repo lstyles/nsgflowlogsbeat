@@ -6,4 +6,5 @@ type ReaderQueueItem struct {
 	RowKey       string
 	ETag         string
 	Index        int64
+	Length       int64
 }

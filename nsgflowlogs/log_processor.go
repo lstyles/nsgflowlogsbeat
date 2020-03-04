@@ -149,6 +149,7 @@ func (lp *LogProcessor) ScanForUpdatedBlobs(wg *sync.WaitGroup) {
 		q := ReaderQueueItem{
 			Name:         blob.Name,
 			Index:        c.Index,
+			Length:       c.Length,
 			PartitionKey: c.PartitionKey,
 			RowKey:       c.RowKey,
 			ETag:         blob.ETag,

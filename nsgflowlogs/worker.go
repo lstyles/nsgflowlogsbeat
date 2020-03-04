@@ -92,7 +92,7 @@ func (w *Worker) Run(i int, wg *sync.WaitGroup, done chan struct{}) {
 		if !fromStart {
 			item.Index -= 2
 		}
-		data := w.storageReader.ReadBlobData(item.Name, item.Index)
+		data := w.storageReader.ReadBlobData(item.Name, item.Index, item.Length-item.Index)
 		length := int64(len(data))
 		if length == 2 {
 			logp.Warn("Downloaded only 2 bytes")
@@ -109,8 +109,15 @@ func (w *Worker) Run(i int, wg *sync.WaitGroup, done chan struct{}) {
 			data = data[0 : len(data)-1]
 		}
 
+		dLen := len(data)
+
+		// if the blob has been written to since we scanned, we have to replace the last character
+		if data[dLen-1] == byte(',') {
+			data[dLen-1] = byte(']')
+		}
+
 		logp.Info("Data after trimming: %s", data[0:15])
-		logp.Info("Data after trimming: %s", data[len(data)-15:len(data)])
+		logp.Info("Data after trimming: %s", data[dLen-15:dLen])
 
 		var messages []NsgMessage
 		var events []beat.Event

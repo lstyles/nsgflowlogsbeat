@@ -119,12 +119,12 @@ func (sr *StorageReader) ListBlobsModifiedBetween(startTime, endTime int64) *[]B
 }
 
 // ReadBlobData - Reads blob from specified starting location
-func (sr *StorageReader) ReadBlobData(path string, startIndex int64) []byte {
+func (sr *StorageReader) ReadBlobData(path string, startIndex, length int64) []byte {
 
 	ctx := context.Background()
 
 	blobURL := sr.container.NewBlockBlobURL(path)
-	downloadResponse, err := blobURL.Download(ctx, startIndex, azblob.CountToEnd, azblob.BlobAccessConditions{}, false)
+	downloadResponse, err := blobURL.Download(ctx, startIndex, length, azblob.BlobAccessConditions{}, false)
 
 	logp.Info("Attempting to download blob %s at %v", path, startIndex)
 
